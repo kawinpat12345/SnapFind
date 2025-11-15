@@ -1,0 +1,1691 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>SnapFind - Login or Sign Up</title>
+<!-- Tailwind for quick utility (used lightly) -->
+<script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+/* -------------------------------
+   SnapFind Auth — Black, Gray & Blue
+   Theme: Innovative Intelligence (v9.0 - Stable)
+   (ไฟล์นี้รวมโค้ด Login และ Sign Up เข้าด้วยกัน)
+   ------------------------------- */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap');
+
+:root{
+  --bg-0: #000000;
+  --panel: #0f1113; /* Dark gray */
+  --muted: rgb(110, 129, 150); /* Blue-gray */
+  --accent: rgb(59, 130, 246); /* Bright Blue */
+  --accent-hover: rgb(96, 165, 250);
+  --glass: rgba(59, 130, 246, 0.05);
+  --glass-2: rgba(59, 130, 246, 0.02);
+  --border-color: rgba(59, 130, 246, 0.1);
+  --text-primary: #e6e6e6;
+}
+
+/* Reset & base */
+*{box-sizing:border-box}
+html,body{height:100%; margin:0; font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial; background:var(--bg-0); color:var(--text-primary);-webkit-font-smoothing:antialiased;}
+
+/* --- App Layout (จาก Login.html) --- */
+.app {
+  min-height:100vh;
+  display:flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  padding: 0;
+  position:relative;
+  overflow:hidden;
+  background: radial-gradient(circle at 10% 10%, var(--glass), transparent 10%), radial-gradient(circle at 90% 90%, var(--glass-2), transparent 10%), var(--bg-0);
+}
+.app-container {
+  position: relative;
+  z-index: 30; /* Must be above spotlight */
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 28px;
+}
+/* Login/Sign Up specific centering */
+.app-container-centered {
+  display: flex;
+  flex-grow: 1; /* Allow container to grow */
+  align-items: center;
+  justify-content: center;
+  min-height: 100%; /* Changed from 100vh */
+  padding: 28px;
+}
+.login-signup-card {
+  width: 100%;
+  max-width: 1400px;
+  border-radius: 14px;
+  padding: 28px;
+  background: linear-gradient(180deg, rgba(18,18,18,0.95), rgba(12,12,12,0.95));
+  border: 1px solid var(--border-color);
+  overflow: hidden;
+  animation: pulseGlow 4s ease-in-out infinite;
+}
+
+/* --- Page Navigation --- */
+.page {
+  display: none; /* Hidden by default */
+  width: 100%;
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+}
+.page.active {
+  display: block; /* Shown by JS */
+  opacity: 1; /* Faded in */
+  flex-grow: 1; /* Make active page fill .app */
+  display: flex; /* Use flex to manage centering */
+  flex-direction: column;
+}
+
+/* --- Effects --- */
+.app::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.5), transparent);
+  animation: scanline 7s ease-in-out infinite;
+  z-index: 10;
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.7);
+  opacity: 0.6;
+}
+@keyframes scanline {
+  0% { top: 0%; opacity: 0.2; }
+  50% { opacity: 0.7; }
+  100% { top: 100%; opacity: 0.2; }
+}
+canvas.effect { position:fixed; inset:0; width:100%; height:100%; z-index:0; pointer-events:none; opacity: 0.6; }
+
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 30px 80px rgba(0,0,0,0.7), 0 0 40px var(--glass) inset, 0 0 20px var(--accent); }
+  50% { box-shadow: 0 30px 80px rgba(0,0,0,0.7), 0 0 40px var(--glass) inset, 0 0 40px var(--accent-hover); }
+}
+
+/* Spotlight Effect */
+#spotlight {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 20;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  background: radial-gradient(
+    circle at 50% 50%,
+    rgba(59, 130, 246, 0.15),
+    transparent 20%,
+    transparent 100%
+  );
+}
+
+/* --- Re-usable Components --- */
+
+/* Buttons */
+.btn {
+  padding:12px 18px; border-radius:10px; font-weight:700; cursor:pointer;
+  border:1px solid var(--border-color); background: linear-gradient(180deg, var(--glass-2), var(--glass));
+  color:var(--text-primary); transition:transform .12s ease, box-shadow .12s ease;
+  text-decoration: none;
+  display: inline-block;
+}
+.btn:hover{ 
+  transform:translateY(-4px); 
+  box-shadow:0 10px 30px rgba(0,0,0,0.6), 0 0 10px var(--accent); 
+  border-color: var(--accent);
+}
+.btnPrimary {
+  background: linear-gradient(180deg, var(--accent), #005bb5);
+  border:1px solid rgba(59, 130, 246, 0.5);
+  color: #fff;
+}
+.btnPrimary:hover {
+  box-shadow:0 10px 30px rgba(0,0,0,0.6), 0 0 15px var(--accent);
+}
+
+/* Inputs & Forms */
+.input {
+  width:100%; padding:10px 12px; border-radius:10px; background: linear-gradient(180deg, var(--glass-2), var(--glass));
+  border:1px solid var(--border-color); color:var(--text-primary);
+  transition: all .3s ease; 
+}
+.input:focus { outline:none; box-shadow:0 0 0 6px var(--glass); transform:translateY(-2px); border-color: var(--accent); }
+.small { font-size:13px; color:var(--muted); }
+
+/* --- Login/Sign Up Specific --- */
+.brand-landing {
+  font-weight: 800;
+  font-size: 84px;
+  color: var(--text-primary);
+  text-shadow: 0 0 20px var(--accent-hover), 0 0 8px var(--accent);
+  margin-bottom: 12px;
+}
+.typewriter {
+  display:inline-block; font-weight:700; font-size:20px; color:var(--accent);
+  white-space:nowrap; overflow:hidden;
+  margin-top:16px;
+}
+/* ( Sign up.html typewriter animation ) */
+.typewriter-anim {
+  border-right:2px solid var(--glass);
+  animation:typing 3.8s steps(40,end), blink .9s step-end infinite;
+}
+@keyframes typing{ from{width:0} to{width:100%} }
+@keyframes blink{50%{border-color:transparent}}
+
+.landing {
+  display:flex; gap:28px; align-items:center; justify-content:center; text-align: center;
+}
+
+
+/* Loading Screen */
+.loaderLogo {
+  font-weight:800; font-size:36px; letter-spacing:0.06em; color:var(--text-primary);
+  display:flex; gap:12px; align-items:center;
+}
+.loaderSub { color:var(--muted); margin-top:10px; font-size:14px; }
+.orb {
+  margin-top:20px;
+  width:110px; height:110px; border-radius:999px;
+  background: radial-gradient(circle at 30% 30%, var(--glass), var(--glass-2));
+  border:1px solid var(--border-color);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.6);
+  position:relative;
+  overflow:hidden;
+}
+.orb:before {
+  content:""; position:absolute; inset:0; background: conic-gradient(var(--glass), transparent 40%, var(--glass));
+  mix-blend-mode:overlay; animation: spin 3.6s linear infinite;
+}
+@keyframes spin{ to{ transform:rotate(360deg)} }
+
+/* transition helpers */
+.view-hidden { display:none; opacity:0; pointer-events:none; transform:translateY(12px); }
+.fade-in { animation: fadein .42s ease both; }
+.fade-out { animation: fadeout .32s ease both; }
+.fade-in-now { animation: fadein-now .3s ease both; } /* (From Login.html) */
+@keyframes fadein { from{opacity:0; transform:translateY(8px)} to{opacity:1; transform:none} }
+@keyframes fadeout { from{opacity:1} to{opacity:0; transform:translateY(8px)} }
+@keyframes fadein-now { from{opacity:0;} to{opacity:1;} } /* (From Login.html) */
+
+/* responsive */
+@media (max-width:900px){
+  .app-container { padding: 18px; }
+  .brand-landing { font-size: 60px; }
+  .landing { flex-direction:column; gap:18px; }
+  .login-signup-card { padding:18px; }
+}
+
+
+/* ===============================================
+   STYLES (คัดลอกจาก Sign up.html)
+===============================================
+*/
+
+#formView .brand {
+  display: none;
+}
+.form {
+  margin-top:14px;
+}
+.sectionTitle { 
+  font-weight:700; 
+  font-size: 20px;
+  color:var(--text-primary); 
+  margin-bottom:8px; 
+  margin-top: 10px;
+}
+.row { display:flex; gap:12px; }
+.col { display:flex; flex-direction:column; gap:10px; }
+
+/* select-button */
+.select-button { padding:14px; border-radius:12px; background:linear-gradient(180deg, var(--glass-2), var(--glass)); border:1px solid var(--border-color); text-align:center; cursor:pointer; }
+.select-button.selected { border-color: var(--accent); transform:translateY(-6px); box-shadow:0 12px 40px rgba(0,0,0,0.6), 0 0 10px var(--accent); }
+
+/* progress */
+.progressBar { height:10px; background: var(--glass-2); border-radius:999px; overflow:hidden; margin:12px 0; }
+.progressFill { height:100%; width:0%; background: linear-gradient(90deg, var(--accent), var(--glass)); transition:width .5s ease; }
+
+/* file upload */
+.fileUpload { border:2px dashed var(--border-color); padding:22px; border-radius:12px; cursor:pointer; text-align:center; background: linear-gradient(180deg, var(--glass-2), var(--glass)); }
+.fileUpload:hover { border-color: var(--accent); }
+
+/* custom calendar popup */
+.calendarPopup {
+  position:fixed; z-index:200; inset:auto; background: linear-gradient(180deg, #0b0b0b, #101010); border-radius:8px; border:1px solid var(--border-color);
+  padding:12px; width:320px; box-shadow:0 20px 60px rgba(0,0,0,0.8), 0 0 15px var(--accent);
+}
+.calHeader { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:8px; }
+.calGrid { display:grid; grid-template-columns: repeat(7, 1fr); gap:6px; }
+.calDay {
+  width:100%; padding:8px; border-radius:6px; text-align:center; cursor:pointer; color:#cfcfcf; background:transparent; border:1px solid transparent;
+}
+.calDay:hover { background:var(--glass); transform:translateY(-2px); }
+.calDay.disabled { opacity:0.12; cursor:not-allowed; }
+.calDay.selected { background:linear-gradient(180deg, var(--glass), var(--glass-2)); border-color:var(--border-color); color:#fff; }
+
+/* responsive (from sign up) */
+@media (max-width:900px){
+  .calendarPopup { width:92%; left:4%; right:4%; }
+  .row { flex-direction: column; gap: 10px; } /* Stack rows on mobile */
+  .col { gap: 10px; }
+}
+
+</style>
+</head>
+<body>
+  
+  <!-- Spotlight Effect -->
+  <div id="spotlight" class="effect"></div>
+
+  <!-- Canvas for effects (fixed) -->
+  <canvas id="particleCanvas" class="effect"></canvas>
+
+  <!-- Main App Wrapper -->
+  <div class="app" id="appRoot">
+
+    <!-- 
+      PAGE 1: LOADING SCREEN (Initial)
+    -->
+    <div class="page active" id="page-loading">
+      <div class="app-container app-container-centered">
+        <div style="text-align: center;">
+          <div class="loaderLogo"><div class="brand-logo" style="font-size: 36px;">SnapFind</div></div>
+          <div class="loaderSub">Preparing your interface — กำลังเตรียมหน้าเว็บ</div>
+          <div class="orb" aria-hidden="true"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 
+      PAGE 2: LOGIN
+    -->
+    <div class="page" id="page-login">
+      <div class="app-container app-container-centered">
+        <div class="login-signup-card">
+          <div class="landing">
+            <div>
+              <div class="brand-landing">SnapFind</div>
+              <div class="typewriter" style="width: 100%; border: none; animation: none;">
+                Login to your account — เข้าสู่ระบบ
+              </div>
+              <div class="form" style="margin-top: 28px; width: 100%; max-width: 400px; margin-left: auto; margin-right: auto; text-align: left;">
+                <div class="col" style="gap: 8px;">
+                  <label for="login-email" class="small">อีเมล / Email</label>
+                  <input id="login-email" type="email" class="input" placeholder="you@example.com" />
+                </div>
+                <div class="col" style="gap: 8px; margin-top: 16px;">
+                  <label for="login-password" class="small">รหัสผ่าน / Password</label>
+                  <input id="login-password" type="password" class="input" placeholder="••••••••" />
+                </div>
+                <div style="text-align: right; margin-top: 8px;">
+                  <a href="#" class="small" style="color: var(--muted); text-decoration: none;">ลืมรหัสผ่าน? / Forgot Password?</a>
+                </div>
+                <div class="cta" style="margin-top: 22px; justify-content: stretch;">
+                  <button id="loginBtn" class="btn btnPrimary" style="width: 100%;" onclick="demoLogin()">เข้าสู่ระบบ / Login</button>
+                </div>
+                <div style="text-align: center; margin-top: 20px;">
+                  <span class="small" style="color: var(--muted);">
+                    ยังไม่มีบัญชี? 
+                    <!-- === MODIFIED: เปลี่ยนเป็น data-nav === -->
+                    <a href="#" data-nav="page-signup" style="color: var(--accent); text-decoration: none; font-weight: 600;">สมัครที่นี่</a>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 
+      PAGE 3: SIGN UP (คัดลอกมาจาก Sign up.html)
+    -->
+    <div class="page" id="page-signup">
+      <div class="app-container app-container-centered">
+        <!-- ใช้ .login-signup-card เพื่อความสอดคล้อง -->
+        <div class="login-signup-card">
+
+          <!-- Landing (จาก Sign up.html) -->
+          <div id="landingView" class="landing fade-in">
+            <div class="left">
+              <div class="brand-landing">
+                SnapFind
+              </div>
+              <div class="typewriter typewriter-anim" data-lang-key="welcome_typewriter">Welcome to SnapFind — สมัครเพื่อเข้าร่วมเครือข่าย SnapFind</div>
+              
+              <div class="cta">
+                <button id="startBtn" class="btn btnPrimary" data-lang-key="start_button">เริ่มลงทะเบียน / Continue</button>
+              </div>
+              
+              <!-- === MODIFIED: เปลี่ยนเป็น data-nav === -->
+              <div style="text-align: center; margin-top: 20px;">
+                <span class="small" style="color: var(--muted);">
+                  มีบัญชีอยู่แล้ว? 
+                  <a href="#" data-nav="page-login" style="color: var(--accent); text-decoration: none; font-weight: 600;">เข้าสู่ระบบที่นี่</a>
+                </span>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Form Section (จาก Sign up.html) -->
+          <div id="formView" class="view-hidden" aria-hidden="true">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <div>
+                <div class="small" data-lang-key="form_subtitle">กรอกข้อมูลเพื่อลงทะเบียน</div>
+              </div>
+            </div>
+
+            <div style="margin-top:12px;">
+              <div class="progressBar"><div id="progressFill" class="progressFill" style="width:0%"></div></div>
+              <div id="formMessage" class="hidden p-3 rounded-md mb-4"></div>
+
+              <!-- Step: Language -->
+              <div id="stepLanguage" class="mt-2">
+                <h3 class="sectionTitle" data-lang-key="lang_title">ขั้นตอนที่ 1: เลือกสัญชาติ / Step 1: Choose Nationality</h3>
+                <div class="row" style="margin-bottom:12px;">
+                  <div id="langThai" class="select-button" onclick="uiSelectLanguage(true, this)">🇹🇭 คนไทย</div>
+                  <div id="langForeign" class="select-button" onclick="uiSelectLanguage(false, this)">🌐 ต่างชาติ / Foreigner</div>
+                </div>
+                <div style="display:flex; justify-content:flex-end; margin-top:14px;">
+                  <!-- === MODIFIED: เปลี่ยนเป็น data-nav === -->
+                  <button type="button" class="btn" data-nav="page-login" data-lang-key="back_to_landing">◀ กลับไปหน้าแรก</button>
+                </div>
+              </div>
+
+              <!-- Step: Role -->
+              <div id="stepRole" class="mt-2 view-hidden">
+                <h3 class="sectionTitle" data-lang-key="role_title">ขั้นตอนที่ 2: เลือกบทบาท</h3>
+                <div class="row" style="margin-bottom:12px;">
+                  <div id="roleTeacher" class="select-button" onclick="uiSelectRole('teacher', this)" data-lang-key="role_teacher">🧑‍🏫 ครู</div>
+                  <div id="roleStudent" class="select-button" onclick="uiSelectRole('student', this)" data-lang-key="role_student">🎓 นักเรียน</div>
+                  <div id="roleGuardian" class="select-button" onclick="uiSelectRole('guardian', this)" data-lang-key="role_guardian">👤 ผู้ปกครอง</div>
+                </div>
+                <div style="display:flex; justify-content:flex-start; margin-top:14px;">
+                  <button type="button" class="btn" onclick="backToLanguageSelection()" data-lang-key="back_button">◀ ย้อนกลับ</button>
+                </div>
+              </div>
+
+              <!-- Step: Full Form -->
+              <div id="stepFormFull" class="mt-6 view-hidden">
+                <!-- dynamic content injected by JS -->
+              </div>
+            </div>
+          </div>
+          
+        </div>
+      </div>
+    </div>
+
+
+  </div> <!-- End .app -->
+
+  <!-- 
+    CALENDAR POPUP (คัดลอกจาก Sign up.html)
+    (วางไว้ข้างนอก .app)
+  -->
+  <div id="calendarPopup" class="calendarPopup view-hidden" role="dialog" aria-modal="true" aria-label="Select date">
+    <div class="calHeader">
+      <div style="display:flex; gap:8px; align-items:center;">
+        <button type="button" class="btn" id="calPrev">&lt;</button>
+        <div id="calMonthYear" style="font-weight:700"></div>
+        <button type="button" class="btn" id="calNext">&gt;</button>
+      </div>
+      <div style="display:flex; gap:8px;">
+        <select id="calYearSelect" class="input" style="background:transparent;border:1px solid var(--border-color);"></select>
+      </div>
+    </div>
+    <div class="calGrid" id="calGridHeader" style="margin-bottom:6px;">
+      <div class="small" style="text-align:center; color:var(--muted)" data-lang-key="cal_sun">Sun</div>
+      <div class="small" style="text-align:center; color:var(--muted)" data-lang-key="cal_mon">Mon</div>
+      <div class="small" style="text-align:center; color:var(--muted)" data-lang-key="cal_tue">Tue</div>
+      <div class="small" style="text-align:center; color:var(--muted)" data-lang-key="cal_wed">Wed</div>
+      <div class="small" style="text-align:center; color:var(--muted)" data-lang-key="cal_thu">Thu</div>
+      <div class="small" style="text-align:center; color:var(--muted)" data-lang-key="cal_fri">Fri</div>
+      <div class="small" style="text-align:center; color:var(--muted)" data-lang-key="cal_sat">Sat</div>
+    </div>
+    <div class="calGrid" id="calDays"></div>
+    <div style="display:flex; justify-content:flex-end; margin-top:8px;">
+      <button type="button" class="btn" id="calCancel" data-lang-key="cal_cancel">Cancel</button>
+    </div>
+  </div>
+
+<script>
+/* ============================
+   Effects: Particles (Floating)
+   ============================ */
+(function effects(){
+  const pCanvas = document.getElementById('particleCanvas');
+  if (!pCanvas) return; // Add guard
+  const ctxP = pCanvas.getContext('2d');
+  const accentColor = "59, 130, 246";
+
+  function resizeAll(){
+    pCanvas.width = innerWidth;
+    pCanvas.height = innerHeight;
+  }
+  resizeAll();
+  window.addEventListener('resize', resizeAll);
+
+  let particles = [];
+  const PCOUNT = Math.min(240, Math.floor((innerWidth*innerHeight)/70000));
+  for (let i=0;i<PCOUNT;i++){
+    particles.push({
+      x: Math.random()*innerWidth,
+      y: Math.random()*innerHeight,
+      r: 0.6 + Math.random()*2,
+      vx: (Math.random()-0.5)*0.6,
+      vy: (Math.random()-0.5)*0.6,
+      a: 0.06 + Math.random()*0.18,
+      phase: Math.random() * Math.PI * 2, 
+      amplitude: 0.2 + Math.random() * 0.4 
+    });
+  }
+  function drawParticles(){
+    ctxP.clearRect(0,0,pCanvas.width,pCanvas.height);
+    particles.forEach(p => {
+      p.x += p.vx;
+      p.y += p.vy + Math.sin(p.phase) * p.amplitude;
+      p.phase += 0.015;
+
+      if (p.x < -50) p.x = pCanvas.width + 50;
+      if (p.x > pCanvas.width + 50) p.x = -50;
+      if (p.y < -50) p.y = pCanvas.height + 50;
+      if (p.y > pCanvas.height + 50) p.y = -50;
+      
+      const g = ctxP.createRadialGradient(p.x,p.y,0,p.x,p.y,p.r*8);
+      g.addColorStop(0, `rgba(${accentColor},${p.a})`);
+      g.addColorStop(1, 'rgba(59, 130, 246,0)');
+      ctxP.fillStyle = g;
+      ctxP.beginPath();
+      ctxP.arc(p.x,p.y,p.r*6,0,Math.PI*2);
+      ctxP.fill();
+    });
+  }
+  function loop(){ drawParticles(); requestAnimationFrame(loop); }
+  loop();
+})();
+
+/* ============================
+   App Core Logic (จาก Login.html)
+   ============================ */
+   
+/* --- Spotlight Effect Logic --- */
+(function spotlightEffect() {
+  const spotlight = document.getElementById('spotlight');
+  if (!spotlight) return;
+  if ('ontouchstart' in window) {
+    return;
+  }
+  setTimeout(() => {
+    spotlight.style.opacity = '1';
+  }, 500);
+  window.addEventListener('mousemove', (e) => {
+    requestAnimationFrame(() => {
+      spotlight.style.background = `radial-gradient(
+        circle at ${e.clientX}px ${e.clientY}px,
+        rgba(59, 130, 246, 0.15),
+        transparent 20%,
+        transparent 100%
+      )`;
+    });
+  });
+})();
+
+/* --- Global Elements --- */
+const allPages = document.querySelectorAll('.page');
+
+/* --- Page Navigation with Fades --- */
+let isNavigating = false; 
+
+function showPage(pageId) {
+  if (isNavigating) return;
+  isNavigating = true;
+
+  let pageToHide = document.querySelector('.page.active');
+  let pageToShow = document.getElementById(pageId);
+
+  if (!pageToShow) {
+    console.error("Page not found:", pageId);
+    isNavigating = false;
+    return;
+  }
+  if (pageToHide === pageToShow) {
+    isNavigating = false;
+    return;
+  }
+
+  // Hide the old page
+  if (pageToHide) {
+    pageToHide.classList.remove('fade-in-now');
+    // Add fade-out class
+    pageToHide.classList.add('fade-out');
+    setTimeout(() => {
+      pageToHide.classList.remove('active');
+      pageToHide.classList.remove('fade-out'); // clean up
+    }, 300);
+  }
+
+  // Show the new page
+  setTimeout(() => {
+    pageToShow.classList.add('active');
+    void pageToShow.offsetHeight; // Force reflow
+    pageToShow.classList.add('fade-in-now'); // Use login's fade
+  
+    setTimeout(() => {
+      isNavigating = false;
+    }, 300);
+  }, pageToHide ? 300 : 0); // Wait for fade-out if there's a page to hide
+}
+
+/* --- Loading Screen Logic (จาก Login.html) --- */
+// (นี่คือตัวที่ทำงานตอนเปิดเว็บ)
+window.addEventListener('load', ()=> {
+  const loadingPage = document.getElementById('page-loading');
+  if (loadingPage && loadingPage.classList.contains('active')) {
+    setTimeout(()=> {
+      // Fade out loading, fade in login
+      showPage('page-login');
+    }, 1200); // Simulate load time
+  }
+});
+
+/* --- Demo Login Function --- */
+function demoLogin() {
+  const btn = document.getElementById('loginBtn');
+  if (!btn) return;
+  btn.innerHTML = "กำลังตรวจสอบ... / Authenticating...";
+  btn.disabled = true;
+
+  // Simulate API call
+  setTimeout(() => {
+    btn.innerHTML = "สำเร็จ! / Success!";
+    btn.style.background = "linear-gradient(180deg, #10B981, #057A55)"; // Green
+    
+    // Redirect to the main app file
+    setTimeout(() => {
+      // ********** THIS IS THE LINK TO THE OTHER FILE **********
+      // window.location.href = "SnapFind App.html"; // (ยังคงปิดไว้ตามคำขอ)
+      alert("ล็อกอินสำเร็จ! (Demo)\n(โค้ดจริงจะพาไปหน้า SnapFind App.html)");
+      
+      // Reset button
+      btn.innerHTML = "เข้าสู่ระบบ / Login";
+      btn.disabled = false;
+      btn.style.background = ""; // Reset to default
+      
+    }, 1000);
+
+  }, 1500);
+}
+
+/* --- Navigation Event Listener --- */
+document.addEventListener('DOMContentLoaded', () => {
+    // Add navigation clicks
+    document.body.addEventListener('click', (e) => {
+        const navButton = e.target.closest('[data-nav]');
+        if (navButton) {
+            e.preventDefault();
+            const pageId = navButton.dataset.nav;
+            // เมื่อกดปุ่ม [data-nav] ให้เรียกฟังก์ชัน showPage
+            showPage(pageId);
+        }
+    });
+});
+
+
+/* ===============================================
+   SCRIPT (คัดลอกจาก Sign up.html)
+===============================================
+*/
+
+/* --- Email providers and lists (Static data) --- */
+const emailProviders = [
+  { key: "gmail", display: "Gmail", domain: "gmail.com" },
+  { key: "outlook", display: "Outlook / Hotmail", domain: "outlook.com" },
+  { key: "yahoo", display: "Yahoo Mail", domain: "yahoo.com" },
+  { key: "icloud", display: "iCloud Mail", domain: "icloud.com" },
+  { key: "other", display: "อื่นๆ (Other)", domain: "" }
+];
+
+/* --- Expanded dialCodes list --- */
+const dialCodes = [
+    { code: "+93", country: "Afghanistan" }, { code: "+355", country: "Albania" }, { code: "+213", country: "Algeria" },
+    { code: "+1-684", country: "American Samoa" }, { code: "+376", country: "Andorra" }, { code: "+244", country: "Angola" },
+    { code: "+1-264", country: "Anguilla" }, { code: "+672", country: "Antarctica" }, { code: "+1-268", country: "Antigua and Barbuda" },
+    { code: "+54", country: "Argentina" }, { code: "+374", country: "Armenia" }, { code: "+297", country: "Aruba" },
+    { code: "+61", country: "Australia" }, { code: "+43", country: "Austria" }, { code: "+994", country: "Azerbaijan" },
+    { code: "+1-242", country: "Bahamas" }, { code: "+973", country: "Bahrain" }, { code: "+880", country: "Bangladesh" },
+    { code: "+1-246", country: "Barbados" }, { code: "+375", country: "Belarus" }, { code: "+32", country: "Belgium" },
+    { code: "+501", country: "Belize" }, { code: "+229", country: "Benin" }, { code: "+1-441", country: "Bermuda" },
+    { code: "+975", country: "Bhutan" }, { code: "+591", country: "Bolivia" }, { code: "+387", country: "Bosnia and Herzegovina" },
+    { code: "+267", country: "Botswana" }, { code: "+55", country: "Brazil" }, { code: "+246", country: "British Indian Ocean Territory" },
+    { code: "+1-284", country: "British Virgin Islands" }, { code: "+673", country: "Brunei" }, { code: "+359", country: "Bulgaria" },
+    { code: "+226", country: "Burkina Faso" }, { code: "+257", country: "Burundi" }, { code: "+855", country: "Cambodia" },
+    { code: "+237", country: "Cameroon" }, { code: "+1", country: "Canada" }, { code: "+238", country: "Cape Verde" },
+    { code: "+1-345", country: "Cayman Islands" }, { code: "+236", country: "Central African Republic" }, { code: "+235", country: "Chad" },
+    { code: "+56", country: "Chile" }, { code: "+86", country: "China" }, { code: "+61", country: "Christmas Island" },
+    { code: "+61", country: "Cocos Islands" }, { code: "+57", country: "Colombia" }, { code: "+269", country: "Comoros" },
+    { code: "+682", country: "Cook Islands" }, { code: "+506", country: "Costa Rica" }, { code: "+385", country: "Croatia" },
+    { code: "+53", country: "Cuba" }, { code: "+599", country: "Curacao" }, { code: "+357", country: "Cyprus" },
+    { code: "+420", country: "Czech Republic" }, { code: "+243", country: "Democratic Republic of the Congo" }, { code: "+45", country: "Denmark" },
+    { code: "+253", country: "Djibouti" }, { code: "+1-767", country: "Dominica" }, { code: "+1-809", country: "Dominican Republic" },
+    { code: "+1-829", country: "Dominican Republic" }, { code: "+1-849", country: "Dominican Republic" }, { code: "+670", country: "East Timor" },
+    { code: "+593", country: "Ecuador" }, { code: "+20", country: "Egypt" }, { code: "+503", country: "El Salvador" },
+    { code: "+240", country: "Equatorial Guinea" }, { code: "+291", country: "Eritrea" }, { code: "+372", country: "Estonia" },
+    { code: "+268", country: "Eswatini" }, { code: "+251", country: "Ethiopia" }, { code: "+500", country: "Falkland Islands" },
+    { code: "+298", country: "Faroe Islands" }, { code: "+679", country: "Fiji" }, { code: "+358", country: "Finland" },
+    { code: "+33", country: "France" }, { code: "+594", country: "French Guiana" }, { code: "+689", country: "French Polynesia" },
+    { code: "+241", country: "Gabon" }, { code: "+220", country: "Gambia" }, { code: "+995", country: "Georgia" },
+    { code: "+49", country: "Germany" }, { code: "+233", country: "Ghana" }, { code: "+350", country: "Gibraltar" },
+    { code: "+30", country: "Greece" }, { code: "+299", country: "Greenland" }, { code: "+1-473", country: "Grenada" },
+    { code: "+590", country: "Guadeloupe" }, { code: "+1-671", country: "Guam" }, { code: "+502", country: "Guatemala" },
+    { code: "+44-1481", country: "Guernsey" }, { code: "+224", country: "Guinea" }, { code: "+245", country: "Guinea-Bissau" },
+    { code: "+592", country: "Guyana" }, { code: "+509", country: "Haiti" }, { code: "+504", country: "Honduras" },
+    { code: "+852", country: "Hong Kong" }, { code: "+36", country: "Hungary" }, { code: "+354", country: "Iceland" },
+    { code: "+91", country: "India" }, { code: "+62", country: "Indonesia" }, { code: "+98", country: "Iran" },
+    { code: "+964", country: "Iraq" }, { code: "+353", country: "Ireland" }, { code: "+44-1624", country: "Isle of Man" },
+    { code: "+972", country: "Israel" }, { code: "+39", country: "Italy" }, { code: "+225", country: "Ivory Coast" },
+    { code: "+1-876", country: "Jamaica" }, { code: "+81", country: "Japan" }, { code: "+44-1534", country: "Jersey" },
+    { code: "+962", country: "Jordan" }, { code: "+7", country: "Kazakhstan" }, { code: "+254", country: "Kenya" },
+    { code: "+686", country: "Kiribati" }, { code: "+383", country: "Kosovo" }, { code: "+965", country: "Kuwait" },
+    { code: "+996", country: "Kyrgyzstan" }, { code: "+856", country: "Laos" }, { code: "+371", country: "Latvia" },
+    { code: "+961", country: "Lebanon" }, { code: "+266", country: "Lesotho" }, { code: "+231", country: "Liberia" },
+    { code: "+218", country: "Libya" }, { code: "+423", country: "Liechtenstein" }, { code: "+370", country: "Lithuania" },
+    { code: "+352", country: "Luxembourg" }, { code: "+853", country: "Macau" }, { code: "+261", country: "Madagascar" },
+    { code: "+265", country: "Malawi" }, { code: "+60", country: "Malaysia" }, { code: "+960", country: "Maldives" },
+    { code: "+223", country: "Mali" }, { code: "+356", country: "Malta" }, { code: "+692", country: "Marshall Islands" },
+    { code: "+596", country: "Martinique" }, { code: "+222", country: "Mauritania" }, { code: "+230", country: "Mauritius" },
+    { code: "+262", country: "Mayotte" }, { code: "+52", country: "Mexico" }, { code: "+691", country: "Micronesia" },
+    { code: "+373", country: "Moldova" }, { code: "+377", country: "Monaco" }, { code: "+976", country: "Mongolia" },
+    { code: "+382", country: "Montenegro" }, { code: "+1-664", country: "Montserrat" }, { code: "+212", country: "Morocco" },
+    { code: "+258", country: "Mozambique" }, { code: "+95", country: "Myanmar" }, { code: "+264", country: "Namibia" },
+    { code: "+674", country: "Nauru" }, { code: "+977", country: "Nepal" }, { code: "+31", country: "Netherlands" },
+    { code: "+687", country: "New Caledonia" }, { code: "+64", country: "New Zealand" }, { code: "+505", country: "Nicaragua" },
+    { code: "+227", country: "Niger" }, { code: "+234", country: "Nigeria" }, { code: "+683", country: "Niue" },
+    { code: "+672", country: "Norfolk Island" }, { code: "+850", country: "North Korea" }, { code: "+389", country: "North Macedonia" },
+    { code: "+1-670", country: "Northern Mariana Islands" }, { code: "+47", country: "Norway" }, { code: "+968", country: "Oman" },
+    { code: "+92", country: "Pakistan" }, { code: "+680", country: "Palau" }, { code: "+970", country: "Palestine" },
+    { code: "+507", country: "Panama" }, { code: "+675", country: "Papua New Guinea" }, { code: "+595", country: "Paraguay" },
+    { code: "+51", country: "Peru" }, { code: "+63", country: "Philippines" }, { code: "+64", country: "Pitcairn" },
+    { code: "+48", country: "Poland" }, { code: "+351", country: "Portugal" }, { code: "+1-787", country: "Puerto Rico" },
+    { code: "+1-939", country: "Puerto Rico" }, { code: "+974", country: "Qatar" }, { code: "+242", country: "Republic of the Congo" },
+    { code: "+262", country: "Reunion" }, { code: "+40", country: "Romania" }, { code: "+7", country: "Russia" },
+    { code: "+250", country: "Rwanda" }, { code: "+590", country: "Saint Barthelemy" }, { code: "+290", country: "Saint Helena" },
+    { code: "+1-869", country: "Saint Kitts and Nevis" }, { code: "+1-758", country: "Saint Lucia" }, { code: "+590", country: "Saint Martin" },
+    { code: "+508", country: "Saint Pierre and Miquelon" }, { code: "+1-784", country: "Saint Vincent and the Grenadines" },
+    { code: "+685", country: "Samoa" }, { code: "+378", country: "San Marino" }, { code: "+239", country: "Sao Tome and Principe" },
+    { code: "+966", country: "Saudi Arabia" }, { code: "+221", country: "Senegal" }, { code: "+381", country: "Serbia" },
+    { code: "+248", country: "Seychelles" }, { code: "+232", country: "Sierra Leone" }, { code: "+65", country: "Singapore" },
+    { code: "+1-721", country: "Sint Maarten" }, { code: "+421", country: "Slovakia" }, { code: "+386", country: "Slovenia" },
+    { code: "+677", country: "Solomon Islands" }, { code: "+252", country: "Somalia" }, { code: "+27", country: "South Africa" },
+    { code: "+82", country: "South Korea" }, { code: "+211", country: "South Sudan" }, { code: "+34", country: "Spain" },
+    { code: "+94", country: "Sri Lanka" }, { code: "+249", country: "Sudan" }, { code: "+597", country: "Suriname" },
+    { code: "+47", country: "Svalbard and Jan Mayen" }, { code: "+46", country: "Sweden" }, { code: "+41", country: "Switzerland" },
+    { code: "+963", country: "Syria" }, { code: "+886", country: "Taiwan" }, { code: "+992", country: "Tajikistan" },
+    { code: "+255", country: "Tanzania" }, { code: "+66", country: "Thailand" }, { code: "+228", country: "Togo" },
+    { code: "+690", country: "Tokelau" }, { code: "+676", country: "Tonga" }, { code: "+1-868", country: "Trinidad and Tobago" },
+    { code: "+216", country: "Tunisia" }, { code: "+90", country: "Turkey" }, { code: "+993", country: "Turkmenistan" },
+    { code: "+1-649", country: "Turks and Caicos Islands" }, { code: "+688", country: "Tuvalu" },
+    { code: "+1-340", country: "U.S. Virgin Islands" }, { code: "+256", country: "Uganda" }, { code: "+380", country: "Ukraine" },
+    { code: "+971", country: "United Arab Emirates" }, { code: "+44", country: "United Kingdom" }, { code: "+1", country: "United States" },
+    { code: "+598", country: "Uruguay" }, { code: "+998", country: "Uzbekistan" }, { code: "+678", country: "Vanuatu" },
+    { code: "+379", country: "Vatican" }, { code: "+58", country: "Venezuela" }, { code: "+84", country: "Vietnam" },
+    { code: "+681", country: "Wallis and Futuna" }, { code: "+212", country: "Western Sahara" }, { code: "+967", country: "Yemen" },
+    { code: "+260", country: "Zambia" }, { code: "+263", country: "Zimbabwe" }
+];
+
+/* --- complete allCountries list --- */
+const allCountries = [
+  { en: "Afghanistan", th: "อัฟกานิสถาน" }, { en: "Albania", th: "แอลเบเนีย" }, { en: "Algeria", th: "แอลจีเรีย" },
+  { en: "Andorra", th: "อันดอร์รา" }, { en: "Angola", th: "แองโกลา" }, { en: "Argentina", th: "อาร์เจนตินา" },
+  { en: "Armenia", th: "อาร์เมเนีย" }, { en: "Australia", th: "ออสเตรเลีย" }, { en: "Austria", th: "ออสเตรีย" },
+  { en: "Azerbaijan", th: "อาเซอร์ไบจาน" }, { en: "Bahamas", th: "บาฮามาส" }, { en: "Bahrain", th: "บาห์เรน" },
+  { en: "Bangladesh", th: "บังกลาเทศ" }, { en: "Barbados", th: "บาร์เบโดส" }, { en: "Belarus", th: "เบลารุส" },
+  { en: "Belgium", th: "เบลเยียม" }, { en: "Belize", th: "เบลีซ" }, { en: "Benin", th: "เบนิน" },
+  { en: "Bhutan", th: "ภูฏาณ" }, { en: "Bolivia", th: "โบลิเวีย" }, { en: "Bosnia and Herzegovina", th: "บอสเนียและเฮอร์เซโกวีนา" },
+  { en: "Botswana", th: "บอตสวานา" }, { en: "Brazil", th: "บราซิล" }, { en: "Brunei", th: "บรูไน" },
+  { en: "Bulgaria", th: "บัลแกเรีย" }, { en: "Burkina Faso", th: "บูร์กินาฟาโซ" }, { en: "Burundi", th: "บุรุนดี" },
+  { en: "Cambodia", th: "กัมพูชา" }, { en: "Cameroon", th: "แคเมอรูน" }, { en: "Canada", th: "แคนาดา" },
+  { en: "Cape Verde", th: "เคป เวิร์ด" }, { en: "Chad", th: "ชาด" }, { en: "Chile", th: "ชิลี" },
+  { en: "China", th: "จีน" }, { en: "Colombia", th: "โคลอมเบีย" }, { en: "Comoros", th: "คอโมโรส" },
+  { en: "Congo", th: "คองโก" }, { en: "Costa Rica", th: "คอสตาริกา" }, { en: "Croatia", th: "โครเอเชีย" },
+  { en: "Cuba", th: "คิวบา" }, { en: "Cyprus", th: "ไซปรัส" }, { en: "Czechia", th: "สาธารณรัฐเช็ก" },
+  { en: "Denmark", th: "เดนมาร์ก" }, { en: "Djibouti", th: "จิบูตี" }, { en: "Dominica", th: "โดมินิกา" },
+  { en: "Dominican Republic", th: "สาธารณรัฐโดมินิกา" }, { en: "Ecuador", th: "เอกวาดอร์" }, { en: "Egypt", th: "อียิปต์" },
+  { en: "El Salvador", th: "เอลซัลวาดอร์" }, { en: "Equatorial Guinea", th: "กินีเสมอภาค" }, { en: "Eritrea", th: "เอริเทรีย" },
+  { en: "Estonia", th: "เอสโตเนีย" }, { en: "Eswatini", th: "เอสวาตินี" }, { en: "Ethiopia", th: "เอธิโอเปีย" },
+  { en: "Fiji", th: "ฟิจิ" }, { en: "Finland", th: "ฟินแลนด์" }, { en: "France", th: "ฝรั่งเศส" },
+  { en: "Gabon", th: "กาบอง" }, { en: "Gambia", th: "แกมเบีย" }, { en: "Georgia", th: "จอร์เจีย" },
+  { en: "Germany", th: "เยอรมนี" }, { en: "Ghana", th: "กานา" }, { en: "Greece", th: "กรีซ" },
+  { en: "Grenada", th: "เกรเนดา" }, { en: "Guatemala", th: "กัวเตมาลา" }, { en: "Guinea", th: "กินี" },
+  { en: "Guinea-Bissau", th: "กินีบิสเซา" }, { en: "Guyana", th: "กายอานา" }, { en: "Haiti", th: "เฮติ" },
+  { en: "Honduras", th: "ฮอนดูรัส" }, { en: "Hungary", th: "ฮังการี" }, { en: "Iceland", th: "ไอซ์แลนด์" },
+  { en: "India", th: "อินเดีย" }, { en: "Indonesia", th: "อินโดนีเซีย" }, { en: "Iran", th: "อิหร่าน" },
+  { en: "Iraq", th: "อิรัก" }, { en: "Ireland", th: "ไอร์แลนด์" }, { en: "Israel", th: "อิสราเอล" },
+  { en: "Italy", th: "อิตาลี" }, { en: "Jamaica", th: "จาเมกา" }, { en: "Japan", th: "ญี่ปุ่น" },
+  { en: "Jordan", th: "จอร์แดน" }, { en: "Kazakhstan", th: "คาซัคสถาน" }, { en: "Kenya", th: "เคนยา" },
+  { en: "Kiribati", th: "คิริบาส" }, { en: "Kuwait", th: "คูเวต" }, { en: "Kyrgyzstan", th: "คีร์กีซสถาน" },
+  { en: "Laos", th: "ลาว" }, { en: "Latvia", th: "ลัตเวีย" }, { en: "Lebanon", th: "เลบานอน" },
+  { en: "Lesotho", th: "เลโซโท" }, { en: "Liberia", th: "ไลบีเรีย" }, { en: "Libya", th: "ลิเบีย" },
+  { en: "Liechtenstein", th: "ลิกเตนสไตน์" }, { en: "Lithuania", th: "ลิทัวเนีย" }, { en: "Luxembourg", th: "ลักเซมเบิร์ก" },
+  { en: "Madagascar", th: "มาดากัสการ์" }, { en: "Malawi", th: "มาลาวี" }, { en: "Malaysia", th: "มาเลเซีย" },
+  { en: "Maldives", th: "มัลดีฟส์" }, { en: "Mali", th: "มาลี" }, { en: "Malta", th: "มอลตา" },
+  { en: "Marshall Islands", th: "หมู่เกาะมาร์แชลล์" }, { en: "Mauritania", th: "มอริเตเนีย" }, { en: "Mauritius", th: "มอริเชียส" },
+  { en: "Mexico", th: "เม็กซิโก" }, { en: "Moldova", th: "มอลโดวา" }, { en: "Monaco", th: "โมนาโก" },
+  { en: "Mongolia", th: "มองโกเลีย" }, { en: "Montenegro", th: "มอนเตเนโกร" }, { en: "Morocco", th: "โมร็อกโก" },
+  { en: "Mozambique", th: "โมซัมบิก" }, { en: "Myanmar", th: "เมียนมาร์" }, { en: "Namibia", th: "นามิเบีย" },
+  { en: "Nauru", th: "นาอูรู" }, { en: "Nepal", th: "เนปาล" }, { en: "Netherlands", th: "เนเธอร์แลนด์" },
+  { en: "New Zealand", th: "นิวซีแลนด์" }, { en: "Nicaragua", th: "นิการากัว" }, { en: "Niger", th: "ไนเจอร์" },
+  { en: "Nigeria", th: "ไนจีเรีย" }, { en: "North Macedonia", th: "มาซิโดเนียเหนือ" }, { en: "Norway", th: "นอร์เวย์" },
+  { en: "Oman", th: "โอมาน" }, { en: "Pakistan", th: "ปากีสถาน" }, { en: "Palau", th: "ปาเลา" },
+  { en: "Panama", th: "ปานามา" }, { en: "Papua New Guinea", th: "ปาปัวนิวกินี" }, { en: "Paraguay", th: "ปารากวัย" },
+  { en: "Peru", th: "เปรู" }, { en: "Philippines", th: "ฟิลิปปินส์" }, { en: "Poland", th: "โปแลนด์" },
+  { en: "Portugal", th: "โปรตุเกส" }, { en: "Qatar", th: "กาตาร์" }, { en: "Romania", th: "โรมาเนีย" },
+  { en: "Russia", th: "รัสเซีย" }, { en: "Rwanda", th: "รวันดา" }, { en: "Saint Kitts and Nevis", th: "เซนต์คิตส์และเนวิส" },
+  { en: "Saint Lucia", th: "เซนต์ลูเซีย" }, { en: "Saint Vincent and the Grenadines", th: "เซนต์วินเซนต์และเกรนาดีนส์" },
+  { en: "Samoa", th: "ซามัว" }, { en: "San Marino", th: "ซานมาริโน" }, { en: "Sao Tome and Principe", th: "เซาตูเมและปรินซิเป" },
+  { en: "Saudi Arabia", th: "ซาอุดีอาระเบีย" }, { en: "Senegal", th: "เซเนกัล" }, { en: "Serbia", th: "เซอร์เบีย" },
+  { en: "Seychelles", th: "เซเชลส์" }, { en: "Sierra Leone", th: "เซียร์ราลีโอน" }, { en: "Singapore", th: "สิงคโปร์" },
+  { en: "Slovakia", th: "สโลวาเกีย" }, { en: "Slovenia", th: "สโลวีเนีย" }, { en: "Solomon Islands", th: "หมู่เกาะโซโลมอน" },
+  { en: "Somalia", th: "โซมาเลีย" }, { en: "South Africa", th: "แอฟริกาใต้" }, { en: "South Sudan", th: "เซาท์ซูดาน" },
+  { en: "Spain", th: "สเปน" }, { en: "Sri Lanka", th: "ศรีลังกา" }, { en: "Sudan", th: "ซูดาน" },
+  { en: "Suriname", th: "ซูรินาเม" }, { en: "Sweden", th: "สวีเดน" }, { en: "Switzerland", th: "สวิตเซอร์แลนด์" },
+  { en: "Syria", th: "ซีเรีย" }, { en: "Tajikistan", th: "ทาจิกิสถาน" }, { en: "Tanzania", th: "แทนซาเนีย" },
+  { en: "Thailand", th: "ไทย" }, { en: "Timor-Leste", th: "ติมอร์-เลสเต" }, { en: "Togo", th: "โตโก" },
+  { en: "Tonga", th: "ตองกา" }, { en: "Trinidad and Tobago", th: "ตรินิแดดและโตเบโก" }, { en: "Tunisia", th: "ตูนิเซีย" },
+  { en: "Turkey", th: "ตุรกี" }, { en: "Turkmenistan", th: "เติร์กเมนิสถาน" }, { en: "Tuvalu", th: "ตูวาลู" },
+  { en: "Uganda", th: "ยูกันดา" }, { en: "Ukraine", th: "ยูเครน" }, { en: "United Arab Emirates", th: "สหรัฐอาหรับเอมิเรตส์" },
+  { en: "United Kingdom", th: "สหราชอาณาจักร" }, { en: "United States of America", th: "สหรัฐอเมริกา" }, { en: "Uruguay", th: "อุรุกวัย" },
+  { en: "Uzbekistan", th: "อุซเบกิสถาน" }, { en: "Vanuatu", th: "วานูอาตู" }, { en: "Venezuela", th: "เวเนซุเอลา" },
+  { en: "Vietnam", th: "เวียดนาม" }, { en: "Yemen", th: "เยเมน" }, { en: "Zambia", th: "แซมเบีย" }, { en: "Zimbabwe", th: "ซิมบับเว" }
+];
+
+
+/* --- Global State (Sign Up) --- */
+let state = {
+  role: null,
+  isThai: true, // Default to Thai
+  selectedFile: null
+};
+
+/* --- Global Elements (Sign Up) --- */
+// (ต้องใช้ตัวแปรซ้ำกับข้างบน แต่ไม่เป็นไรเพราะมันอยู่ใน scope เดียวกัน)
+const landingView_signup = document.getElementById('landingView'); // (ใช้ตัวแปรเดียวกับ login)
+const formView_signup = document.getElementById('formView');
+const startBtn_signup = document.getElementById('startBtn');
+const stepLanguage_signup = document.getElementById('stepLanguage');
+const stepRole_signup = document.getElementById('stepRole');
+const stepFormFull_signup = document.getElementById('stepFormFull');
+const progressFill_signup = document.getElementById('progressFill');
+const formMessage_signup = document.getElementById('formMessage');
+
+/* --- Utility: update progress bar --- */
+function setProgress(pct){
+  const progressFill = document.getElementById('progressFill');
+  if (progressFill) progressFill.style.width = pct + '%';
+}
+
+/* --- Internationalization (i18n) Store --- */
+const translations = {
+  // Landing
+  welcome_typewriter: { th: "Welcome to SnapFind — สมัครเพื่อเข้าร่วมเครือข่าย SnapFind", en: "Welcome to SnapFind — Join the SnapFind Network" },
+  start_button: { th: "เริ่มลงทะเบียน", en: "Continue" },
+  // Form General
+  form_subtitle: { th: "กรอกข้อมูลเพื่อลงทะเบียน", en: "Fill out the form to register" },
+  back_to_landing: { th: "◀ กลับไปหน้าแรก", en: "◀ Back to Home" },
+  back_button: { th: "◀ ย้อนกลับ", en: "◀ Back" },
+  next_button: { th: "ถัดไป", en: "Next" },
+  submit_button: { th: "ยืนยันการลงทะเบียน", en: "Submit Registration" },
+  // Step: Language
+  lang_title: { th: "ขั้นตอนที่ 1: เลือกสัญชาติ", en: "Step 1: Choose Nationality" },
+  // Step: Role
+  role_title: { th: "ขั้นตอนที่ 2: เลือกบทบาท", en: "Step 2: Choose Role" },
+  role_teacher: { th: "🧑‍🏫 ครู", en: "🧑‍🏫 Teacher / Staff" },
+  role_student: { th: "🎓 นักเรียน", en: "🎓 Student" },
+  role_guardian: { th: "👤 ผู้ปกครอง", en: "👤 Guardian" },
+  // Step: Form (1/3)
+  form_step1_title: { th: "ขั้นตอนที่ 3: ข้อมูลส่วนตัวและการติดต่อ (1/3)", en: "Step 3: Personal Info & Contact (1/3)" },
+  first_name_label: { th: "ชื่อ *", en: "First name *" },
+  first_name_placeholder: { th: "ชื่อ", en: "First name" },
+  last_name_label: { th: "นามสกุล *", en: "Last name *" },
+  last_name_placeholder: { th: "นามสกุล", en: "Last name" },
+  dob_label: { th: "วันเดือนปีเกิด *", en: "Date of birth *" },
+  dob_placeholder: { th: "เลือกวันที่...", en: "Select date..." },
+  dob_select: { th: "เลือก", en: "Select" },
+  gender_label: { th: "เพศ *", en: "Gender *" },
+  gender_placeholder: { th: "--", en: "--" },
+  gender_male: { th: "ชาย", en: "Male" },
+  gender_female: { th: "หญิง", en: "Female" },
+  gender_other: { th: "อื่น ๆ", en: "Other" },
+  dial_code_label: { th: "รหัสประเทศ", en: "Dial code" },
+  phone_label: { th: "เบอร์โทรศัพท์ *", en: "Phone number *" },
+  phone_placeholder: { th: "0XX-XXX-XXXX", en: "Phone number" },
+  email_label: { th: "อีเมล *", en: "Email *" },
+  email_placeholder: { th: "local-part (e.g. john.smith)", en: "local-part (e.g. john.smith)" },
+  email_preview: { th: "ตัวอย่าง:", en: "Preview:" },
+  password_title: { th: "ตั้งรหัสผ่าน", en: "Set Password" },
+  password_label: { th: "รหัสผ่าน *", en: "Password *" },
+  password_placeholder: { th: "••••••••", en: "••••••••" },
+  confirm_password_label: { th: "ยืนยันรหัสผ่าน *", en: "Confirm Password *" },
+  address_label: { th: "ที่อยู่ปัจจุบัน *", en: "Current address *" },
+  address1_placeholder: { th: "บ้านเลขที่, ถนน, หมู่บ้าน/อาคาร", en: "Address Line 1 (House No, Street, Village)" },
+  address2_placeholder: { th: "ตำบล/แขวง, อำเภอ/เขต", en: "Address Line 2 (Subdistrict, District)" },
+  address_province_placeholder: { th: "จังหวัด", en: "Province" },
+  address_zip_placeholder: { th: "รหัสไปรษณีย์", en: "Postal Code" },
+  foreign_nationality_label: { th: "สัญชาติ *", en: "Nationality *" },
+  foreign_residence_label: { th: "ประเทศที่พำนัก *", en: "Country of Residence *" },
+  id_number_label: { th: "เลขบัตรประชาชน / Passport", en: "National ID / Passport" },
+  id_number_placeholder_th: { th: "เลขบัตรประชาชน 13 หลัก (ถ้ามี)", en: "Passport number" },
+  id_number_placeholder_en: { th: "Passport number", en: "Passport number" },
+  back_to_role: { th: "◀ ย้อนกลับไปเลือกบทบาท", en: "◀ Back to Role Selection" },
+  // Step: Form (2/3)
+  form_step2_title: { th: "ขั้นตอนที่ 4: ข้อมูลเฉพาะบทบาท (2/3)", en: "Step 4: Role-Specific Information (2/3)" },
+  // Step: Form (3/3)
+  form_step3_title: { th: "ขั้นตอนที่ 5: ยืนยันตัวตน (3/3)", en: "Step 5: Identity Verification (3/3)" },
+  upload_desc: { th: "อัปโหลดภาพบัตรประชาชนหรือเอกสารยืนยันตัวตน (JPG, PNG, PDF) — Max 5MB", en: "Upload National ID or Passport (JPG, PNG, PDF) — Max 5MB" },
+  upload_cta: { th: "คลิกเพื่อเลือกไฟล์ หรือลากไฟล์มาวางที่นี่", en: "Click to select file, or drag & drop here" },
+  // Calendar
+  cal_sun: { th: "อา", en: "Sun" },
+  cal_mon: { th: "จ", en: "Mon" },
+  cal_tue: { th: "อ", en: "Tue" },
+  cal_wed: { th: "พ", en: "Wed" },
+  cal_thu: { th: "พฤ", en: "Thu" },
+  cal_fri: { th: "ศ", en: "Fri" },
+  cal_sat: { th: "ส", en: "Sat" },
+  cal_cancel: { th: "ยกเลิก", en: "Cancel" },
+  // Role-specific (Teacher)
+  teacher_pos_label: { th: "ตำแหน่ง", en: "Position" },
+  teacher_pos_placeholder: { th: "ตำแหน่ง (เช่น ครูประจำชั้น)", en: "Position (e.g. Homeroom Teacher)" },
+  teacher_dep_label: { th: "สังกัด", en: "Department" },
+  teacher_id_label: { th: "รหัสพนักงาน", en: "Employee ID" },
+  // Role-specific (Student)
+  student_grade_label: { th: "ชั้นปี", en: "Grade" },
+  student_grade_placeholder: { th: "เลือกชั้น", en: "Select grade" },
+  student_program_label: { th: "โครงการ", en: "Program" },
+  student_program_placeholder: { th: "เลือกโปรแกรม", en: "Select program" },
+  student_id_label: { th: "รหัสนักเรียน", en: "Student ID" },
+  // Role-specific (Guardian)
+  guardian_relation_label: { th: "ความสัมพันธ์กับนักเรียน", en: "Relation to Student" },
+  guardian_relation_placeholder: { th: "เช่น มารดา / บิดา", en: "e.g. Mother / Father" },
+  guardian_student_id_label: { th: "รหัสนักเรียนที่เกี่ยวข้อง", en: "Related Student ID" },
+  guardian_emergency_label: { th: "เบอร์โทรฉุกเฉิน", en: "Emergency phone" },
+  
+  // === ‼️ โค้ดส่วน "Programs" ที่แก้ไขแล้ว ===
+  programs: [
+      { key: "iep", th: "IEP (Intensive English Program)", en: "IEP (Intensive English Program)" },
+      { key: "bell", th: "Bell Program", en: "Bell Program" },
+      { key: "innovative_intel", th: "Innovative Intelligence", en: "Innovative Intelligence" },
+      { key: "english_program", th: "English Program", en: "English Program" },
+      { key: "gifted_sci", th: "ห้องเรียนพิเศษวิทยาศาสตร์ตามแนวทาง สสวท. และ สอวน.", en: "Gifted Science Program (POSN & IPST)" },
+      { key: "stem_bell", th: "STEM-Bell วิทยาศาสตร์ - คณิตศาสตร์", en: "STEM-Bell Science - Math" },
+      { key: "digital_sci", th: "Digital Science", en: "Digital Science" },
+      { key: "math_eng", th: "คณิตศาสตร์ - ภาษาอังกฤษ (ศิลป์คำนวณ)", en: "Math - English (Art-Calculation)" },
+      { key: "eng_cn", th: "ภาษาอังกฤษ - ภาษาจีน (ศิลป์ภาษา)", en: "English - Chinese (Art-Language)" },
+      { key: "eng_jp", th: "ภาษาอังกฤษ - ภาษาญี่ปุ่น (ศิลป์ภาษา)", en: "English - Japanese (Art-Language)" },
+      { key: "business_mgmt", th: "การจัดการธุรกิจ", en: "Business Management" },
+      { key: "digital_art", th: "Digital Art", en: "Digital Art" },
+      { key: "sport_sci", th: "วิทยาศาสตร์การกีฬา", en: "Sport Science" },
+      { key: "music_ent", th: "ดนตรี การแสดง และอุตสาหกรรมบันเทิง", en: "Music, Performing Arts & Entertainment" },
+      { key: "fine_arts", th: "สหศิลป์", en: "Fine & Applied Arts" },
+      { key: "sports", th: "กีฬา", en: "Sports" }
+  ],
+  // === จบส่วน "Programs" ===
+
+  grades: [
+      { key: "p1", th: "ป.1 / Gr.1", en: "Gr.1 / P.1" },
+      { key: "p2", th: "ป.2 / Gr.2", en: "Gr.2 / P.2" },
+      { key: "p3", th: "ป.3 / Gr.3", en: "Gr.3 / P.3" },
+      { key: "p4", th: "ป.4 / Gr.4", en: "Gr.4 / P.4" },
+      { key: "p5", th: "ป.5 / Gr.5", en: "Gr.5 / P.5" },
+      { key: "p6", th: "ป.6 / Gr.6", en: "Gr.6 / P.6" },
+      { key: "m1", th: "ม.1 / Gr.7", en: "Gr.7 / M.1" },
+      { key: "m2", th: "ม.2 / Gr.8", en: "Gr.8 / M.2" },
+      { key: "m3", th: "ม.3 / Gr.9", en: "Gr.9 / M.3" },
+      { key: "m4", th: "ม.4 / Gr.10", en: "Gr.10 / M.4" },
+      { key: "m5", th: "ม.5 / Gr.11", en: "Gr.11 / M.5" },
+      { key: "m6", th: "ม.6 / Gr.12", en: "Gr.12 / M.6" },
+  ],
+  // Messages
+  msg_fill_required: { th: "กรุณากรอกข้อมูลที่จำเป็นทั้งหมดก่อนส่ง", en: "Please fill in all required fields before submitting" },
+  msg_password_mismatch: { th: "รหัสผ่านไม่ตรงกัน", en: "Passwords do not match" },
+  msg_upload_required: { th: "โปรดอัปโหลดเอกสารยืนยันตัวตนก่อนส่ง", en: "Please upload an identity document before submitting" },
+  msg_file_size_limit: { th: "ไฟล์มีขนาดเกิน 5MB กรุณาเลือกไฟล์ขนาดเล็กกว่า", en: "File size exceeds 5MB. Please choose a smaller file" },
+  msg_submit_success: { th: "ลงทะเบียนสำเร็จ (demo) — ระบบจะพากลับไปหน้า Login", en: "Registration Successful (demo) — Redirecting to Login" },
+};
+
+/* --- Language Update Function --- */
+function updateLanguage() {
+  const lang = state.isThai ? 'th' : 'en';
+  document.documentElement.lang = state.isThai ? 'th' : 'en';
+
+  document.querySelectorAll('[data-lang-key]').forEach(el => {
+    const key = el.dataset.langKey;
+    if (translations[key] && translations[key][lang]) {
+      el.innerHTML = translations[key][lang]; // Use innerHTML for emojis
+    }
+  });
+
+  document.querySelectorAll('[data-lang-key-placeholder]').forEach(el => {
+    const key = el.dataset.langKeyPlaceholder;
+    if (translations[key] && translations[key][lang]) {
+      el.placeholder = translations[key][lang];
+    }
+  });
+
+  // Special case for dynamic form (if it's already built)
+  const stepFormFull = document.getElementById('stepFormFull');
+  if (stepFormFull && !stepFormFull.classList.contains('view-hidden')) {
+    buildFullForm(); // Re-build form to apply language
+  }
+}
+
+/* UI bindings (Sign Up) */
+const startBtn = document.getElementById('startBtn');
+if (startBtn) {
+  startBtn.addEventListener('click', ()=> {
+    const landingView = document.getElementById('landingView');
+    const formView = document.getElementById('formView');
+    if (landingView) landingView.classList.add('fade-out');
+    
+    setTimeout(()=> {
+      if (landingView) landingView.classList.add('view-hidden');
+      if (formView) {
+        formView.classList.remove('view-hidden');
+        formView.classList.add('fade-in');
+      }
+      setTimeout(()=> formView && formView.classList.remove('fade-in'), 420);
+      
+      // Show language step first
+      const stepLanguage = document.getElementById('stepLanguage');
+      const stepRole = document.getElementById('stepRole');
+      const stepFormFull = document.getElementById('stepFormFull');
+      
+      if (stepLanguage) stepLanguage.classList.remove('view-hidden');
+      if (stepRole) stepRole.classList.add('view-hidden');
+      if (stepFormFull) stepFormFull.classList.add('view-hidden');
+      setProgress(10);
+    }, 300);
+  });
+}
+
+/* --- Navigation Functions (Sign Up) --- */
+function backToLanding() {
+  const landingView = document.getElementById('landingView');
+  const formView = document.getElementById('formView');
+
+  if (formView) formView.classList.add('fade-out');
+  setTimeout(()=> {
+    if (formView) {
+      formView.classList.add('view-hidden');
+      formView.classList.remove('fade-out');
+    }
+    if (landingView) {
+      landingView.classList.remove('view-hidden');
+      void landingView.offsetHeight; 
+      landingView.classList.add('fade-in');
+    }
+    setTimeout(()=> landingView && landingView.classList.remove('fade-in'), 420);
+    setProgress(0);
+  }, 250);
+}
+
+function uiSelectLanguage(isThaiFlag, el) {
+  state.isThai = isThaiFlag;
+  document.querySelectorAll('#stepLanguage .select-button').forEach(b=>b.classList.remove('selected'));
+  if (el) el.classList.add('selected');
+  
+  updateLanguage(); // Update all static text
+  
+  const stepLanguage = document.getElementById('stepLanguage');
+  const stepRole = document.getElementById('stepRole');
+
+  setTimeout(() => {
+    if (stepLanguage) stepLanguage.classList.add('view-hidden');
+    if (stepRole) stepRole.classList.remove('view-hidden');
+    setProgress(20);
+  }, 200);
+}
+
+function backToLanguageSelection() {
+  const stepLanguage = document.getElementById('stepLanguage');
+  const stepRole = document.getElementById('stepRole');
+  if (stepRole) stepRole.classList.add('view-hidden');
+  if (stepLanguage) stepLanguage.classList.remove('view-hidden');
+  setProgress(10);
+}
+
+/* Role selection */
+function uiSelectRole(role, el){
+  state.role = role;
+  document.querySelectorAll('#stepRole .select-button').forEach(b=>b.classList.remove('selected'));
+  if (el) el.classList.add('selected');
+  hideMessage();
+
+  const stepRole = document.getElementById('stepRole');
+  setTimeout(() => {
+    if (stepRole) stepRole.classList.add('view-hidden');
+    enterForm(); 
+  }, 200);
+}
+
+/* enter full form */
+function enterForm(){
+  buildFullForm(); 
+  setProgress(33); 
+}
+
+/* New function to go back to Role Selection */
+function backToRoleSelection(){
+  const stepFormFull = document.getElementById('stepFormFull');
+  const stepRole = document.getElementById('stepRole');
+
+  if (stepFormFull) {
+    stepFormFull.classList.add('view-hidden');
+    stepFormFull.innerHTML = ''; // Clear the form
+  }
+  if (stepRole) stepRole.classList.remove('view-hidden');
+  setProgress(20); 
+  // Deselect role buttons
+  document.querySelectorAll('#stepRole .select-button').forEach(b=>b.classList.remove('selected'));
+  state.role = null;
+}
+
+
+/* show message */
+function showMessage(msg, isError=false, timeout=4000){
+  const formMessage = document.getElementById('formMessage');
+  if (formMessage) {
+    formMessage.textContent = msg;
+    formMessage.classList.remove('hidden');
+    formMessage.style.background = isError ? 'rgba(139,0,0,0.06)' : 'rgba(16,185,129,0.04)';
+    formMessage.style.border = isError ? '1px solid rgba(139,0,0,0.12)' : '1px solid rgba(34,197,94,0.08)';
+    if (timeout>0) setTimeout(()=> hideMessage(), timeout);
+  }
+}
+function hideMessage(){ 
+  const formMessage = document.getElementById('formMessage');
+  if (formMessage) formMessage.classList.add('hidden'); 
+}
+
+/* Reset (goes back to landing) */
+function resetAll(){
+  state.role = null; state.isThai = true; state.selectedFile = null;
+  updateLanguage(); // Reset language to Thai
+  
+  const stepFormFull = document.getElementById('stepFormFull');
+  const stepRole = document.getElementById('stepRole');
+  const stepLanguage = document.getElementById('stepLanguage');
+
+  if (stepFormFull) stepFormFull.classList.add('view-hidden');
+  if (stepRole) stepRole.classList.add('view-hidden');
+  if (stepLanguage) stepLanguage.classList.add('view-hidden');
+  
+  document.querySelectorAll('.select-button').forEach(b=>b.classList.remove('selected'));
+  hideMessage();
+  backToLanding();
+}
+
+/* Build large form with inner steps and custom calendar */
+function buildFullForm(){
+  const stepFormFull = document.getElementById('stepFormFull');
+  if (!stepFormFull) return;
+  stepFormFull.innerHTML = ''; // clear
+  stepFormFull.classList.remove('view-hidden');
+  
+  const lang = state.isThai ? 'th' : 'en';
+
+  const wrapper = document.createElement('div');
+  wrapper.className = 'form';
+
+  wrapper.innerHTML = `
+    <div id="innerStep1">
+      <h4 class="sectionTitle">${translations.form_step1_title[lang]}</h4>
+      <div class="row">
+        <div class="col" style="flex:1">
+          <label class="small">
+<div class="col">
+<label class="small">คำนำหน้า / Title</label>
+<select id="titleSelect" class="input">
+<optgroup label="คนไทย">
+<option value="เด็กชาย">เด็กชาย</option>
+<option value="เด็กหญิง">เด็กหญิง</option>
+<option value="นาย">นาย</option>
+<option value="นาง">นาง</option>
+<option value="นางสาว">นางสาว</option>
+</optgroup>
+<optgroup label="Foreign">
+<option value="Mr">Mr</option>
+<option value="Mrs">Mrs</option>
+<option value="Miss">Miss</option>
+<option value="Ms">Ms</option>
+<option value="Master">Master</option>
+</optgroup>
+</select>
+</div>
+${translations.first_name_label[lang]}</label>
+          <input id="first_name" class="input" placeholder="${translations.first_name_placeholder[lang]}" />
+        </div>
+        <div class="col" style="flex:1">
+          <label class="small">${translations.last_name_label[lang]}</label>
+          <input id="last_name" class="input" placeholder="${translations.last_name_placeholder[lang]}" />
+        </div>
+      </div>
+      <div class="row" style="margin-top:10px;">
+        <div class="col" style="flex:1">
+          <label class="small">${translations.dob_label[lang]}</label>
+          <div style="display:flex; gap:8px;">
+            <input id="dob_display" readonly class="input" placeholder="${translations.dob_placeholder[lang]}" />
+            <button type="button" id="openCalendar" class="btn">${translations.dob_select[lang]}</button>
+          </div>
+        </div>
+        <div class="col" style="flex:1">
+          <label class="small">${translations.gender_label[lang]}</label>
+          <select id="gender" class="input">
+            <option value="">${translations.gender_placeholder[lang]}</option>
+            <option value="male">${translations.gender_male[lang]}</option>
+            <option value="female">${translations.gender_female[lang]}</option>
+            <option value="other">${translations.gender_other[lang]}</option>
+          </select>
+        </div>
+      </div>
+      <div class="row" style="margin-top:10px; align-items:flex-end;">
+        <div style="flex:0 0 220px">
+          <label class="small">${translations.dial_code_label[lang]}</label>
+          <select id="dial_code" class="input"></select>
+        </div>
+        <div style="flex:1">
+          <label class="small">${translations.phone_label[lang]}</label>
+          <input id="phone_number" class="input" placeholder="${translations.phone_placeholder[lang]}" />
+        </div>
+      </div>
+      <div style="margin-top:10px;">
+        <label class="small">${translations.email_label[lang]}</label>
+        <div style="display:flex; gap:8px;">
+          <input id="email_local" class="input" placeholder="${translations.email_placeholder[lang]}" />
+          <select id="email_provider" class="input" style="flex:0 0 220px;"></select>
+        </div>
+        <div id="email_custom_wrap" class="view-hidden" style="margin-top:8px;">
+          <label class="small">โดเมน (เช่น your-domain.com)</label>
+          <input id="email_custom" class="input" placeholder="example.com" />
+        </div>
+        <div class="small" style="margin-top:8px;">${translations.email_preview[lang]} <span id="email_preview" style="color:var(--accent)"></span></div>
+      </div>
+      <div style="margin-top:12px; border-top:1px solid var(--border-color); padding-top:12px;">
+          <h5 class="sectionTitle" style="font-size: 14px; color: var(--accent);">${translations.password_title[lang]}</h5>
+          <div class="row">
+              <div class="col" style="flex:1">
+                  <label class="small">${translations.password_label[lang]}</label>
+                  <input id="password" type="password" class="input" placeholder="${translations.password_placeholder[lang]}" />
+              </div>
+              <div class="col" style="flex:1">
+                  <label class="small">${translations.confirm_password_label[lang]}</label>
+                  <input id="confirm_password" type="password" class="input" placeholder="${translations.password_placeholder[lang]}" />
+              </div>
+          </div>
+      </div>
+      <div style="margin-top:12px;">
+        <label class="small">${translations.address_label[lang]}</label>
+        <input id="address_line_1" class="input" placeholder="${translations.address1_placeholder[lang]}" />
+        <input id="address_line_2" class="input" style="margin-top:8px;" placeholder="${translations.address2_placeholder[lang]}" />
+        <div class="row" style="margin-top:8px;">
+          <div class="col" style="flex:1">
+            <input id="address_province" class="input" placeholder="${translations.address_province_placeholder[lang]}" />
+          </div>
+          <div class="col" style="flex:1">
+            <input id="address_zip" class="input" placeholder="${translations.address_zip_placeholder[lang]}" />
+          </div>
+        </div>
+      </div>
+      <div id="foreignerBlock" class="${state.isThai ? 'view-hidden' : ''}" style="margin-top:10px;">
+        <label class="small">${translations.foreign_nationality_label[lang]}</label>
+        <select id="nationality_select" class="input"></select>
+        <label class="small" style="margin-top:8px;">${translations.foreign_residence_label[lang]}</label>
+        <select id="residence_select" class="input"></select>
+      </div>
+      <div style="margin-top:12px; border-top:1px solid var(--border-color); padding-top:12px;">
+        <label class="small">${translations.id_number_label[lang]}</label>
+        <input id="id_number" class="input" placeholder="${state.isThai ? translations.id_number_placeholder_th[lang] : translations.id_number_placeholder_en[lang]}" />
+      </div>
+      <div style="display:flex; justify-content:space-between; margin-top:14px;">
+        <button type="button" class="btn" onclick="backToRoleSelection()">${translations.back_to_role[lang]}</button>
+        <button type="button" class="btn btnPrimary" onclick="showInnerStep(1)">${translations.next_button[lang]} (2/3)</button>
+      </div>
+    </div>
+    <div id="innerStep2" class="view-hidden" style="margin-top:12px;">
+      <h4 class="sectionTitle">${translations.form_step2_title[lang]}</h4>
+      <div id="roleSpecificArea"></div>
+      <div style="display:flex; justify-content:space-between; margin-top:14px;">
+        <button type="button" class="btn" onclick="showInnerStep(0)">${translations.back_button[lang]} (1/3)</button>
+        <button type="button" class="btn btnPrimary" onclick="showInnerStep(2)">${translations.next_button[lang]} (3/3)</button>
+      </div>
+    </div>
+    <div id="innerStep3" class="view-hidden" style="margin-top:12px;">
+      <h4 class="sectionTitle">${translations.form_step3_title[lang]}</h4>
+      <p class="small">${translations.upload_desc[lang]}</p>
+      <div class="fileUpload" onclick="document.getElementById('fileInput').click()">
+        <div class="small">${translations.upload_cta[lang]}</div>
+        <div id="file_name_display" style="color:var(--accent); margin-top:8px;"></div>
+        <input id="fileInput" type="file" accept="image/*,.pdf" class="view-hidden" onchange="handleFile(event)" />
+      </div>
+      <div style="display:flex; justify-content:space-between; margin-top:14px;">
+        <button type="button" class="btn" onclick="showInnerStep(1)">${translations.back_button[lang]} (2/3)</button>
+        <button type="button" class="btn btnPrimary" onclick="submitForm()">${translations.submit_button[lang]}</button>
+      </div>
+    </div>
+  `;
+
+  stepFormFull.appendChild(wrapper);
+
+  // populate dynamic selects
+  populateDialCodes();
+  populateEmailProviders();
+  populateCountries();
+  populateRoleSpecific(); // This now needs to be language-aware
+  updateEmailPreview();
+
+  // calendar binding
+  const openCalendarBtn = document.getElementById('openCalendar');
+  if (openCalendarBtn) {
+    openCalendarBtn.addEventListener('click', (e)=>{
+      const dobDisplay = document.getElementById('dob_display');
+      if (dobDisplay) {
+        const rect = dobDisplay.getBoundingClientRect();
+        openCalendar(rect.left + 20, rect.top + 60, (ymdStr)=> {
+          dobDisplay.value = ymdStr;
+        });
+      }
+    });
+  }
+
+  // if not Thai show foreign block
+  const foreignerBlock = document.getElementById('foreignerBlock');
+  if (foreignerBlock) {
+    foreignerBlock.classList.toggle('view-hidden', state.isThai);
+  }
+
+  // show inner step 0
+  showInnerStep(0);
+}
+
+/* show inner steps (0..2) */
+function showInnerStep(idx){
+  setProgress(33 + idx*22);
+  const innerStep1 = document.getElementById('innerStep1');
+  const innerStep2 = document.getElementById('innerStep2');
+  const innerStep3 = document.getElementById('innerStep3');
+  
+  if (innerStep1) innerStep1.classList.toggle('view-hidden', idx !== 0);
+  if (innerStep2) innerStep2.classList.toggle('view-hidden', idx !== 1);
+  if (innerStep3) innerStep3.classList.toggle('view-hidden', idx !== 2);
+  if (idx === 1) populateRoleSpecific(); 
+}
+
+/* populate dial codes */
+function populateDialCodes(){
+  const sel = document.getElementById('dial_code');
+  if (!sel) return;
+  sel.innerHTML = '';
+  dialCodes.forEach(d => {
+    const o = document.createElement('option');
+    o.value = d.code;
+    o.text = `${d.code} — ${d.country}`;
+    sel.appendChild(o);
+  });
+  if (state.isThai) sel.value = '+66';
+}
+
+/* populate email providers */
+function populateEmailProviders(){
+  const sel = document.getElementById('email_provider');
+  if (!sel) return;
+  sel.innerHTML = '';
+  emailProviders.forEach(p => {
+    const o = document.createElement('option');
+    o.value = p.key;
+    o.text = p.display + (p.domain ? ` (@${p.domain})` : '');
+    sel.appendChild(o);
+  });
+  sel.value = 'gmail';
+  sel.addEventListener('change', onEmailProviderChange);
+  document.getElementById('email_local')?.addEventListener('input', updateEmailPreview);
+  onEmailProviderChange();
+}
+function onEmailProviderChange(){
+  const sel = document.getElementById('email_provider');
+  const wrap = document.getElementById('email_custom_wrap');
+  if (!sel || !wrap) return;
+  
+  const chosen = emailProviders.find(p => p.key === sel.value);
+  if (chosen && chosen.key === 'other') wrap.classList.remove('view-hidden'); else wrap.classList.add('view-hidden');
+  updateEmailPreview();
+}
+function updateEmailPreview(){
+  const local = document.getElementById('email_local');
+  const sel = document.getElementById('email_provider');
+  const preview = document.getElementById('email_preview');
+  if (!local || !sel || !preview) return;
+  
+  const p = emailProviders.find(x => x.key === sel.value) || { domain: '' };
+  const customDomain = document.getElementById('email_custom')?.value || 'your-domain.com';
+  const domain = p.key === 'other' ? customDomain : p.domain;
+  
+  preview.textContent = local.value ? `${local.value}@${domain}` : `— @${domain}`;
+}
+
+/* populate countries */
+function populateCountries(){
+  const nat = document.getElementById('nationality_select');
+  const res = document.getElementById('residence_select');
+  if (!nat || !res) return;
+  
+  const lang = state.isThai ? 'th' : 'en';
+  const placeholder = translations.student_program_placeholder[lang] || "Select...";
+  nat.innerHTML = `<option value="">${placeholder}</option>`;
+  res.innerHTML = `<option value="">${placeholder}</option>`;
+  
+  const sorted = allCountries.slice().sort((a,b)=> a.en.localeCompare(b.en));
+  sorted.forEach(c => {
+    const o1 = document.createElement('option'); o1.value = c.en; o1.text = `${c.en} — ${c.th}`; nat.appendChild(o1);
+    const o2 = document.createElement('option'); o2.value = c.en; o2.text = `${c.en} — ${c.th}`; res.appendChild(o2);
+  });
+
+  nat.addEventListener('change', ()=> autoSetDialFromCountry(nat.value));
+  res.addEventListener('change', ()=> autoSetDialFromCountry(res.value));
+}
+
+/* auto-set dial code mapping (best-effort) */
+function autoSetDialFromCountry(countryName){
+  if (!countryName) return;
+  const map = {
+    "Thailand": "+66","United States of America":"+1", "United Kingdom":"+44", "Japan":"+81", "South Korea":"+82",
+    "China":"+86","India":"+91","Australia":"+61","Canada":"+1","Germany":"+49","France":"+33","Italy":"+39",
+    "Vietnam":"+84","Philippines":"+63","Malaysia":"+60","Singapore":"+65","Indonesia":"+62","Mexico":"+52",
+    "Spain":"+34","Netherlands":"+31","New Zealand":"+64","Russia":"+7","Turkey":"+90","Sweden":"+46","Switzerland":"+41",
+    "Norway":"+47","Ukraine":"+380"
+  };
+  const dial = map[countryName];
+  if (dial){
+    const sel = document.getElementById('dial_code');
+    if (sel) sel.value = dial;
+  }
+}
+
+/* populate role specific fields */
+function populateRoleSpecific(){
+  const wrap = document.getElementById('roleSpecificArea');
+  if (!wrap) return;
+  const lang = state.isThai ? 'th' : 'en';
+  
+  wrap.innerHTML = '';
+  if (state.role === 'teacher'){
+    wrap.innerHTML = `
+      <label class="small">${translations.teacher_pos_label[lang]}</label>
+      <input id="teacher_position" class="input" placeholder="${translations.teacher_pos_placeholder[lang]}"/>
+      <div class="row" style="margin-top:8px;">
+        <div style="flex:1"><label class="small">${translations.teacher_dep_label[lang]}</label><input id="teacher_department" class="input" /></div>
+        <div style="flex:1"><label class="small">${translations.teacher_id_label[lang]}</label><input id="teacher_empid" class="input" /></div>
+      </div>`;
+  } else if (state.role === 'student'){
+    wrap.innerHTML = `
+      <label class="small">${translations.student_grade_label[lang]}</label>
+      <select id="student_grade" class="input">
+        <option value="">${translations.student_grade_placeholder[lang]}</option>
+        ${translations.grades.map(g => `<option value="${g.key}">${g[lang]}</option>`).join('')}
+      </select>
+      
+      <label class="small" style="margin-top:8px;">${translations.student_program_label[lang]}</label>
+      <select id="student_program" class="input">
+        <option value="">${translations.student_program_placeholder[lang]}</option>
+        ${translations.programs.map(p => `<option value="${p.key}">${p[lang]}</option>`).join('')}
+      </select>
+
+      <label class="small" style="margin-top:8px;">${translations.student_id_label[lang]}</label>
+      <input id="student_id" class="input" />`;
+  } else if (state.role === 'guardian'){
+    wrap.innerHTML = `
+      <label class="small">${translations.guardian_relation_label[lang]}</label>
+      <input id="guardian_relation" class="input" placeholder="${translations.guardian_relation_placeholder[lang]}" />
+      <label class="small" style="margin-top:8px;">${translations.guardian_student_id_label[lang]}</label>
+      <input id="guardian_student_id" class="input" />
+      <label class="small" style="margin-top:8px;">${translations.guardian_emergency_label[lang]}</label>
+      <input id="guardian_emergency" class="input" placeholder="+66-..." />`;
+  } else {
+    wrap.innerHTML = `<div class="small">${state.isThai ? 'ไม่มีข้อมูลเฉพาะบทบาท' : 'No role-specific information'}</div>`;
+  }
+}
+
+/* file handling */
+function handleFile(ev){
+  const f = ev.target.files && ev.target.files[0];
+  const display = document.getElementById('file_name_display');
+  if (!f) { 
+    state.selectedFile = null; 
+    if(display) display.textContent=''; 
+    return; 
+  }
+  if (f.size > 5 * 1024 * 1024){
+    showMessage(translations.msg_file_size_limit[state.isThai ? 'th' : 'en'], true);
+    ev.target.value = '';
+    state.selectedFile = null; 
+    if(display) display.textContent='';
+    return;
+  }
+  state.selectedFile = f;
+  if (display) display.textContent = `${f.name} • ${(f.size/1024/1024).toFixed(2)} MB`;
+  hideMessage();
+}
+
+/* submit (demo) */
+function submitForm(){
+  const lang = state.isThai ? 'th' : 'en';
+  const required = [
+    'first_name','last_name','dob_display','gender','phone_number','email_local',
+    'password', 'confirm_password',
+    'address_line_1', 'address_line_2', 'address_province', 'address_zip'
+  ];
+  for (let id of required){
+    const el = document.getElementById(id);
+    if (!el || !el.value || el.value.trim()===''){
+      showMessage(translations.msg_fill_required[lang], true);
+      showInnerStep(0); 
+      return;
+    }
+  }
+  
+  const pass = document.getElementById('password')?.value;
+  const confirm = document.getElementById('confirm_password')?.value;
+  if (pass !== confirm) {
+    showMessage(translations.msg_password_mismatch[lang], true);
+    showInnerStep(0); 
+    return;
+  }
+
+  if (!state.selectedFile){
+    showMessage(translations.msg_upload_required[lang], true);
+    showInnerStep(2);
+    return;
+  }
+  const payload = collectFormData();
+  console.log('Demo payload:', payload);
+  showMessage(translations.msg_submit_success[lang], false);
+  setProgress(100);
+  
+  // === MODIFIED: หลังจากสมัครเสร็จ ให้พาไปหน้า Login ===
+  setTimeout(()=> {
+    showPage('page-login');
+    // Reset ฟอร์มของ Sign up
+    resetAll();
+    // Reset ตำแหน่งการเลื่อน (scroll)
+    const appContainer = document.querySelector('.app-container-centered');
+    if (appContainer) appContainer.scrollTop = 0;
+  }, 2000);
+}
+
+/* collect form data */
+function collectFormData(){
+  const out = { role: state.role, nationality: state.isThai ? 'Thai' : 'Foreigner' };
+  out.first_name = document.getElementById('first_name')?.value || '';
+  out.last_name = document.getElementById('last_name')?.value || '';
+  out.dob = document.getElementById('dob_display')?.value || '';
+  out.gender = document.getElementById('gender')?.value || '';
+  out.dial_code = document.getElementById('dial_code')?.value || '';
+  out.phone = document.getElementById('phone_number')?.value || '';
+  const local = document.getElementById('email_local')?.value || '';
+  const providerKey = document.getElementById('email_provider')?.value || '';
+  const provider = emailProviders.find(p => p.key === providerKey) || { domain: '' };
+  const customDomain = document.getElementById('email_custom')?.value || '';
+  const domain = provider.key === 'other' ? customDomain : provider.domain;
+  out.email = local && domain ? `${local}@${domain}` : '';
+  
+  out.password_set = !!document.getElementById('password')?.value;
+  out.address_1 = document.getElementById('address_line_1')?.value || '';
+  out.address_2 = document.getElementById('address_line_2')?.value || '';
+  out.province = document.getElementById('address_province')?.value || '';
+  out.zip = document.getElementById('address_zip')?.value || '';
+  
+  if (!state.isThai){
+    out.nationality = document.getElementById('nationality_select')?.value || '';
+    out.residence = document.getElementById('residence_select')?.value || '';
+  }
+  out.id_number = document.getElementById('id_number')?.value || '';
+  if (state.role === 'teacher'){
+    out.position = document.getElementById('teacher_position')?.value || '';
+    out.department = document.getElementById('teacher_department')?.value || '';
+    out.empid = document.getElementById('teacher_empid')?.value || '';
+  } else if (state.role === 'student'){
+    out.grade = document.getElementById('student_grade')?.value || '';
+    out.program = document.getElementById('student_program')?.value || '';
+    out.student_id = document.getElementById('student_id')?.value || '';
+  } else if (state.role === 'guardian'){
+    out.relation = document.getElementById('guardian_relation')?.value || '';
+    out.related_student_id = document.getElementById('guardian_student_id')?.value || '';
+    out.emergency = document.getElementById('guardian_emergency')?.value || '';
+  }
+  out.file = state.selectedFile ? { name: state.selectedFile.name, size: state.selectedFile.size } : null;
+  return out;
+}
+
+/* ===============
+   CUSTOM CALENDAR
+   =============== */
+const calendarPopup = document.getElementById('calendarPopup');
+const calDays = document.getElementById('calDays');
+const calMonthYear = document.getElementById('calMonthYear');
+const calPrev = document.getElementById('calPrev');
+const calNext = document.getElementById('calNext');
+const calYearSelect = document.getElementById('calYearSelect');
+const calCancel = document.getElementById('calCancel');
+
+let calState = {
+  year: new Date().getFullYear(),
+  month: new Date().getMonth(), 
+  onSelect: null,
+  minYear: 1900,
+  maxYear: new Date().getFullYear()
+};
+
+function openCalendar(x = window.innerWidth/2 - 160, y = window.innerHeight/2 - 160, onSelect){
+  calState.onSelect = onSelect;
+  if (!calendarPopup) return;
+  calendarPopup.style.left = Math.max(10, Math.min(x, window.innerWidth - 340)) + 'px';
+  calendarPopup.style.top = Math.max(60, Math.min(y, window.innerHeight - 380)) + 'px';
+  calendarPopup.classList.remove('view-hidden');
+  calendarPopup.classList.add('fade-in');
+  setTimeout(()=> calendarPopup.classList.remove('fade-in'), 420);
+  renderCalendar();
+  if (calYearSelect) {
+    calYearSelect.innerHTML = '';
+    for (let y = calState.maxYear; y >= calState.minYear; y--) {
+      const o = document.createElement('option'); o.value = y; o.text = y; calYearSelect.appendChild(o);
+    }
+    calYearSelect.value = calState.year;
+  }
+}
+function closeCalendar(){
+  if (calendarPopup) {
+    calendarPopup.classList.add('fade-out');
+    setTimeout(()=> {
+      calendarPopup.classList.add('view-hidden');
+      calendarPopup.classList.remove('fade-out');
+    }, 220);
+  }
+}
+
+function renderCalendar(){
+  if (calDays) calDays.innerHTML = '';
+  const year = calState.year;
+  const month = calState.month;
+  const first = new Date(year, month, 1);
+  const last = new Date(year, month+1, 0);
+  const startDay = first.getDay(); 
+  const daysInMonth = last.getDate();
+  const lang = state.isThai ? 'th-TH' : 'en-US';
+  if (calMonthYear) calMonthYear.textContent = `${first.toLocaleString(lang,{month:'long'})} ${year}`;
+  
+  for (let i=0;i<startDay;i++){
+    const el = document.createElement('div'); el.className='calDay disabled'; el.textContent=''; 
+    if (calDays) calDays.appendChild(el);
+  }
+  for (let d=1; d<=daysInMonth; d++){
+    const el = document.createElement('div');
+    el.className = 'calDay';
+    el.textContent = d;
+    el.addEventListener('click', ()=> {
+      const mm = (month+1).toString().padStart(2,'0');
+      const dd = d.toString().padStart(2,'0');
+      const ymd = `${year}-${mm}-${dd}`;
+      if (calState.onSelect) calState.onSelect(ymd);
+      closeCalendar();
+    });
+    if (calDays) calDays.appendChild(el);
+  }
+}
+
+if (calPrev) calPrev.addEventListener('click', ()=> {
+  calState.month--;
+  if (calState.month < 0) { calState.month = 11; calState.year--; }
+  renderCalendar();
+  if (calYearSelect) calYearSelect.value = calState.year;
+});
+if (calNext) calNext.addEventListener('click', ()=> {
+  calState.month++;
+  if (calState.month > 11) { calState.month = 0; calState.year++; }
+  renderCalendar();
+  if (calYearSelect) calYearSelect.value = calState.year;
+});
+if (calYearSelect) calYearSelect.addEventListener('change', ()=> {
+  calState.year = parseInt(calYearSelect.value,10);
+  renderCalendar();
+});
+if (calCancel) calCancel.addEventListener('click', ()=> closeCalendar());
+
+document.addEventListener('click', (e)=>{
+  if (calendarPopup && !calendarPopup.classList.contains('view-hidden') && !calendarPopup.contains(e.target) && e.target.id !== 'openCalendar') {
+    closeCalendar();
+  }
+});
+
+(function(){
+  calState.year = new Date().getFullYear() - 16; 
+  calState.month = new Date().getMonth();
+})();
+
+(function initUI(){
+  setProgress(0);
+  updateLanguage(); // Set initial language
+})();
+
+</script>
+</body>
+</html>
